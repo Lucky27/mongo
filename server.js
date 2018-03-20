@@ -24,7 +24,7 @@ app.use(express.static("public"));
 // Set mongoose to leverage built in JavaScript ES6 Promises
 // Connect to the Mongo DB
 mongoose.Promise = Promise;
-mongoose.connect("mongodb:",{//need help!!!!
+mongoose.connect("mongodb://localhost/week10PopulaterScraper",{
 	useMongoClient: true
 });
 
@@ -73,10 +73,31 @@ app.get("/articles", function(req, res){
 		});
 });
 
+//route for grabbing article by id.
+app.get("/articles/:id", function(req, res){
+	db.Article.findOne({_id: req.params.id})
+	.populate("note").then(function(dbArticle){
+		res.json(dbArticle);
+	}).catch(function(err){
+		res.json(err)
+	});
+});
 
+app.post("/articles/:id", function(req, res){
+	db.Note.create(req.body).then(function(dbNote){
+		return db.Article.findOneAndUpdate({_id: req.params.id}, {note: dbNote._id}, {new: true})
 
+	}).then(function(dbArticle){
+		res.json(dbArticle);
+	}).catch(function(err){
+		res.json(err);
+	});
+});
 
-
+//listening to server
+app.listen(PORT, function(){
+	console.log("PORT: "+PORT);
+});
 
 
 
