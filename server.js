@@ -2,7 +2,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
 var mongoose = require("mongoose");
-
+var request = require("request");
 var axios = require("axios");
 var cheerio = require("cheerio");
 
@@ -24,16 +24,16 @@ app.use(express.static("public"));
 // Set mongoose to leverage built in JavaScript ES6 Promises
 // Connect to the Mongo DB
 mongoose.Promise = Promise;
-mongoose.connect("mongodb://localhost/week10PopulaterScraper",{
-	useMongoClient: true
+mongoose.connect("mongodb://localhost/Article",{
+	// useMongoClient: true
 });
 
 // Routes
 
 // GET route for scraping the NBA website
 app.get("/scrape", function(req, res){
-	axios.get("http://www.nba.com").then(function(response){
-		var $ = cheerio.load(response.data);
+	request("http://www.nytimes.com", function(error, response, html){
+		var $ = cheerio.load(html);
 
 		//grab h2 within an article tag
 		$("article h2").each(function(i, element){
@@ -46,7 +46,10 @@ app.get("/scrape", function(req, res){
 				.text();
 			result.link = $(this)
 				.children("a")
-				attr("href");
+				// attr("href");
+			result.summary =$(this)
+				.children("summary")
+				.text();
 
 			db.Article
 				.create(result)
